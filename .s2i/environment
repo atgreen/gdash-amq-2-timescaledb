@@ -1,0 +1,2 @@
+APP_SYSTEM_NAME=gdash-amq-2-timescaledb
+APP_EVAL="(gdash-amq-2-timescaledb:start-gdash-amq-2-timescaledb)"
