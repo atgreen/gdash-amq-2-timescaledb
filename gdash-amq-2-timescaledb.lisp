@@ -25,10 +25,10 @@
 
 (defparameter *tower-notification* "/topic/tower-notification")
 
-(defun callback (frame)
+(defun tower-notification-callback (frame)
   (format t "[~a]~%" (stomp:frame-body frame)))
 
 (defun start-gdash-amq-2-timescaledb ()
   (setf *stomp* (stomp:make-connection *amq-host* 61613))
-  (stomp:register *stomp* #'callback *tower-notification*)
+  (stomp:register *stomp* #'tower-notification-callback *tower-notification*)
   (stomp:start *stomp*))
