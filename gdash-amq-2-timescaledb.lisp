@@ -43,7 +43,8 @@
 					   :host *db-host*
 					   :port 5432
 					   :username "gdash" :password *db-password*)))
-    (log:info "Connected to timescaledb at ~A:5432 (~A)" *db-host* dbc))))
+    (log:info "Connected to timescaledb at ~A:5432 (~A)" *db-host* dbc)
+    dbc)))
 
 (defun tower-notification-callback (frame)
   (let ((db-connection (connect-cached))
