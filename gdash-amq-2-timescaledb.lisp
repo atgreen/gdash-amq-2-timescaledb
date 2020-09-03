@@ -48,8 +48,8 @@
 	  (status (cdr (assoc :STATUS message))))
       (log:info "** ~A" (assoc :URL message))
       (dbi:do-sql *db-connection*
-	"insert into tower_notifications(name, status, url, unixtimestamp) values ('~A', '~A', '~A', round(extract(epoch from now())));"
-	name url status))
+	(format nil "insert into tower_notifications(name, status, url, unixtimestamp) values ('~A', '~A', '~A', round(extract(epoch from now())));"
+		name url status)))
     (log:info ">> [~a]~%" (stomp:frame-body frame))))
 
 (defun start-gdash-amq-2-timescaledb ()
