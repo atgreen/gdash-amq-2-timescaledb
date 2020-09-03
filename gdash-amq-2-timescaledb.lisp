@@ -49,7 +49,7 @@
       (log:info "** ~A" url)
       (dbi:do-sql *db-connection*
 	(format nil "insert into tower_notifications(name, status, url, unixtimestamp) values ('~A', '~A', '~A', round(extract(epoch from now())));"
-		(cl-ppcre:regex-replace-all "\'" name "\\\'")
+		(cl-ppcre:regex-replace-all "'" name "''")
 		url status)))
     (log:info ">> [~a]~%" (stomp:frame-body frame))))
 
