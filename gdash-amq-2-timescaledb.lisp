@@ -24,8 +24,7 @@
 (defparameter *tower-notification* "/topic/tower-notification")
 
 (defvar *stomp* nil)
-(defvar *db-password* nil)
-(defvar *db-host* nil)
+(defvar *db-connection* nil)
 
 (defun getenv (var)
   (let ((val (uiop:getenv var)))
@@ -33,38 +32,30 @@
       (error "Environment variable ~A is not set." var))
     val))
 
-(defmethod connect-cached ()
-  (unless *db-password*
-    (setf *db-password* (getenv "TIMESCALEDB_PASSWORD"))
-  (unless *db-host*
-    (setf *db-host* (getenv "TIMESCALEDB_HOST")))
-
+(defun db-connect ()
   (let ((dbc (dbi:connect-cached :postgres :database-name "gdash"
-					   :host *db-host*
+					   :host (getenv "TIMESCALEDB_HOST")
 					   :port 5432
-					   :username "gdash" :password *db-password*)))
+					   :username "gdash" :password (getenv "TIMESCALEDB_PASSWORD"))))
     (log:info "Connected to timescaledb at ~A:5432 (~A)" *db-host* dbc)
-    dbc)))
+    dbc))
 
 (defun tower-notification-callback (frame)
-  (let ((db-connection (connect-cached))
-	(message (json:decode-json-from-string (stomp:frame-body frame))))
+  (let ((message (json:decode-json-from-string (stomp:frame-body frame))))
     (let ((url (cdr (assoc :URL message)))
 	  (name (cdr (assoc :NAME message)))
 	  (status (cdr (assoc :STATUS message))))
       (log:info "** ~A" (assoc :URL message))
-      (dbi:do-sql db-connection
+      (dbi:do-sql *db-connection*
 	"insert into tower_notifications(name, status, url, unixtimestamp) values ('~A', '~A', '~A', round(extract(epoch from now())));"
 	name url status))
     (log:info ">> [~a]~%" (stomp:frame-body frame))))
 
 (defun start-gdash-amq-2-timescaledb ()
-
-  (let ((db-connection (connect-cached)))
-    (mapc (lambda (command)
-	    (dbi:do-sql db-connection command))
-	  '("create table if not exists tower_notifications (name char(40), status char(10), url char(128), unixtimestamp integer);")))
-
+  (setf *db-connection* (db-connect))
+  (mapc (lambda (command)
+	  (dbi:do-sql *db-connection* command))
+	'("create table if not exists tower_notifications (name char(40), status char(10), url char(128), unixtimestamp integer);"))
   (setf *stomp* (stomp:make-connection *amq-host* 61613))
   (stomp:register *stomp* #'tower-notification-callback *tower-notification*)
   (log:info "Starting stomp server....")
