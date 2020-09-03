@@ -33,7 +33,7 @@
       (error "Environment variable ~A is not set." var))
     val))
 
-(defmethod connect-cached (host)
+(defmethod connect-cached ()
   (unless *db-password*
     (setf *db-password* (getenv "TIMESCALEDB_PASSWORD"))
   (unless *db-host*
