@@ -23,5 +23,5 @@
   :serial t
   :components ((:file "package")
 	       (:file "gdash-amq-2-timescaledb"))
-  :depends-on (:cl-stomp :cl-dbi :cl-json))
+  :depends-on (:cl-stomp :cl-dbi :log4cl :cl-json))
 

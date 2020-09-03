@@ -49,7 +49,7 @@
   (let ((db-connection (connect-cached))
 	(message (stomp:frame-body frame)))
 ;;    (dbi:do-sql db-connection "insert into tower_notifications(id, url, unixtimestamp) values (-1, '~A');")
-    (format t ">> [~a]~%" (stomp:frame-body frame)))
+    (log:info ">> [~a]~%" (stomp:frame-body frame))))
 
 (defun start-gdash-amq-2-timescaledb ()
 
@@ -60,4 +60,5 @@
 
   (setf *stomp* (stomp:make-connection *amq-host* 61613))
   (stomp:register *stomp* #'tower-notification-callback *tower-notification*)
+  (log:info "Starting stomp server....")
   (stomp:start *stomp*))
