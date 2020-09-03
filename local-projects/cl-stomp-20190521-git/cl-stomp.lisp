@@ -501,6 +501,7 @@
 
 (defmethod apply-callbacks ((conn connection) (frame frame))
   "Send FRAME to any matching registered callbacks."
+  (log-debug "Applying callbacks to ~A." frame)
   (with-slots (registrations error-callback) conn
     (if (error-frame-p frame)
       (when error-callback
@@ -509,6 +510,7 @@
             (subscription (get-subscription frame)))
         (loop for reg in registrations
               do (with-slots (callback destination id) reg
+                   (log-debug "Checking ~A against ~A." subscription id)
                    (when (and callback
                               ;; one or both could be nil
                               (string-equal subscription id)
@@ -516,6 +518,7 @@
                               ;; or temporary destinations, so allow a matching non-nil id to be
                               ;; sufficient for applying the callback
                               (or id (destination= dest destination)))
+                     (log-debug "MATCH")
                      (funcall callback frame))))))))
 
 (defmethod register ((conn connection) callback (destination string) &key selector id client-ack?)
