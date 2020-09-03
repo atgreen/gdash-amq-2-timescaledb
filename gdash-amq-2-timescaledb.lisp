@@ -48,7 +48,8 @@
 
 (defun tower-notification-callback (frame)
   (let ((db-connection (connect-cached))
-	(message (stomp:frame-body frame)))
+	(message (json:decode-json-from-string (stomp:frame-body frame))))
+    (log:info "** ~A" (assoc :URL message))
 ;;    (dbi:do-sql db-connection "insert into tower_notifications(id, url, unixtimestamp) values (-1, '~A');")
     (log:info ">> [~a]~%" (stomp:frame-body frame))))
 
