@@ -511,9 +511,10 @@
         (loop for reg in registrations
               do (with-slots (callback destination id) reg
                    (log-debug "Checking ~A against ~A." subscription id)
+                   (log-debug "Checking ~A against ~A." dest destination)
                    (when (and callback
                               ;; one or both could be nil
-                              (string-equal subscription id)
+                              ; FIXME (string-equal subscription id)
                               ;; destination= will not return T for registrations using wildcards
                               ;; or temporary destinations, so allow a matching non-nil id to be
                               ;; sufficient for applying the callback
