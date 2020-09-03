@@ -41,14 +41,14 @@
 ;;;-------------------------------------------------------------------------
 ;;; Convenience utils
 
-#-nil
+#+nil
 (defun log-debug (fmt &rest args)
   (fresh-line *standard-output*)
   (apply #'format *standard-output* fmt args)
   (fresh-line *standard-output*)
   (force-output *standard-output*))
 
-#+nil
+#-nil
 (defun log-debug (fmt &rest args)
   (declare (ignore fmt args)))
 
@@ -501,7 +501,6 @@
 
 (defmethod apply-callbacks ((conn connection) (frame frame))
   "Send FRAME to any matching registered callbacks."
-  (log-debug "Applying callbacks to ~A." frame)
   (with-slots (registrations error-callback) conn
     (if (error-frame-p frame)
       (when error-callback
@@ -510,16 +509,15 @@
             (subscription (get-subscription frame)))
         (loop for reg in registrations
               do (with-slots (callback destination id) reg
-                   (log-debug "Checking ~A against ~A." subscription id)
-                   (log-debug "Checking ~A against ~A." dest destination)
                    (when (and callback
                               ;; one or both could be nil
-                              ; FIXME (string-equal subscription id)
+                              (if (and subscription id)
+                                  (string-equal subscription id)
+                                  t)
                               ;; destination= will not return T for registrations using wildcards
                               ;; or temporary destinations, so allow a matching non-nil id to be
                               ;; sufficient for applying the callback
                               (or id (destination= dest destination)))
-                     (log-debug "MATCH")
                      (funcall callback frame))))))))
 
 (defmethod register ((conn connection) callback (destination string) &key selector id client-ack?)
