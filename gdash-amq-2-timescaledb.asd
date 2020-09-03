@@ -17,11 +17,11 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (asdf:defsystem #:gdash-amq-2-timescaledb
-  :description "This is my gdash-amq-2-timescaledb template."
+  :description "Feed a timescaledb instance with AMQ message data."
   :author "Anthony Green <green@moxielogic.com>"
            :version "0"
   :serial t
   :components ((:file "package")
 	       (:file "gdash-amq-2-timescaledb"))
-  :depends-on (:cl-stomp))
+  :depends-on (:cl-stomp :cl-dbi :cl-json))
 

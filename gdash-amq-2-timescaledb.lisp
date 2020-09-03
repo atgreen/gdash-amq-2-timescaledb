@@ -20,15 +20,44 @@
 
 (in-package :gdash-amq-2-timescaledb)
 
-(defvar *stomp* nil)
 (defparameter *amq-host* "amq-broker")
-
 (defparameter *tower-notification* "/topic/tower-notification")
 
+(defvar *stomp* nil)
+(defvar *db-password* nil)
+(defvar *db-host* nil)
+
+(defun getenv (var)
+  (let ((val (uiop:getenv var)))
+    (when (null val)
+      (error "Environment variable ~A is not set." var))
+    val))
+
+(defmethod connect-cached (host)
+  (unless *db-password*
+    (setf *db-password* (getenv "TIMESCALEDB_PASSWORD"))
+  (unless *db-host*
+    (setf *db-host* (getenv "TIMESCALEDB_HOST")))
+
+  (let ((dbc (dbi:connect-cached :postgres :database-name "gdash"
+					   :host *db-host*
+					   :port 5432
+					   :username "gdash" :password *db-password*)))
+    (log:info "Connected to timescaledb at ~A:5432 (~A)" *db-host* dbc))))
+
 (defun tower-notification-callback (frame)
-  (format t "[~a]~%" (stomp:frame-body frame)))
+  (let ((db-connection (connect-cached))
+	(message (stomp:frame-body frame)))
+;;    (dbi:do-sql db-connection "insert into tower_notifications(id, url, unixtimestamp) values (-1, '~A');")
+    (format t ">> [~a]~%" (stomp:frame-body frame)))
 
 (defun start-gdash-amq-2-timescaledb ()
+
+  (let ((db-connection (connect-cached)))
+    (mapc (lambda (command)
+	    (dbi:do-sql db-connection command))
+	  '("create table if not exists tower_notifications (id char(12), url char(40), unixtimestamp integer);")))
+
   (setf *stomp* (stomp:make-connection *amq-host* 61613))
   (stomp:register *stomp* #'tower-notification-callback *tower-notification*)
   (stomp:start *stomp*))
