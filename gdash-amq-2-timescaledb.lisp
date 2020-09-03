@@ -33,11 +33,12 @@
     val))
 
 (defun db-connect ()
-  (let ((dbc (dbi:connect-cached :postgres :database-name "gdash"
-					   :host (getenv "TIMESCALEDB_HOST")
-					   :port 5432
-					   :username "gdash" :password (getenv "TIMESCALEDB_PASSWORD"))))
-    (log:info "Connected to timescaledb at ~A:5432 (~A)" *db-host* dbc)
+  (let* ((db-host (getenv "TIMESCALEDB_HOST"))
+	 (dbc (dbi:connect-cached :postgres :database-name "gdash"
+					    :host db-host
+					    :port 5432
+					    :username "gdash" :password (getenv "TIMESCALEDB_PASSWORD"))))
+    (log:info "Connected to timescaledb at ~A:5432 (~A)" db-host dbc)
     dbc))
 
 (defun tower-notification-callback (frame)
