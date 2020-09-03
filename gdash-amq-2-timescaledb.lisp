@@ -49,8 +49,13 @@
 (defun tower-notification-callback (frame)
   (let ((db-connection (connect-cached))
 	(message (json:decode-json-from-string (stomp:frame-body frame))))
-    (log:info "** ~A" (assoc :URL message))
-;;    (dbi:do-sql db-connection "insert into tower_notifications(id, url, unixtimestamp) values (-1, '~A');")
+    (let ((url (cdr (assoc :URL message)))
+	  (name (cdr (assoc :NAME message)))
+	  (status (cdr (assoc :STATUS message))))
+      (log:info "** ~A" (assoc :URL message))
+      (dbi:do-sql db-connection
+	"insert into tower_notifications(name, status, url, unixtimestamp) values ('~A', '~A', '~A', round(extract(epoch from now())));"
+	name, url, status)
     (log:info ">> [~a]~%" (stomp:frame-body frame))))
 
 (defun start-gdash-amq-2-timescaledb ()
@@ -58,7 +63,7 @@
   (let ((db-connection (connect-cached)))
     (mapc (lambda (command)
 	    (dbi:do-sql db-connection command))
-	  '("create table if not exists tower_notifications (id char(12), url char(40), unixtimestamp integer);")))
+	  '("create table if not exists tower_notifications (name char(40), status char(10), url char(128), unixtimestamp integer);")))
 
   (setf *stomp* (stomp:make-connection *amq-host* 61613))
   (stomp:register *stomp* #'tower-notification-callback *tower-notification*)
